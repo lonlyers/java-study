@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -77,8 +78,8 @@ public class TravelPlanService {
 
     public TravelPlan updatePlanAttractions(Long planId, List<Long> attractionIds) {
         TravelPlan plan = getPlanById(planId);
-        plan.getPlanAttractions().clear();
         travelPlanRepository.flush();
+        plan.getPlanAttractions().clear();
 
         for (int i = 0; i < attractionIds.size(); i++) {
             Attraction attraction = attractionRepository.findById(attractionIds.get(i))
@@ -98,11 +99,15 @@ public class TravelPlanService {
         return planAttractionRepository.save(pa);
     }
 
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"
+    );
+
     public PlanAttraction uploadPhoto(Long planAttractionId, MultipartFile file) throws IOException {
         PlanAttraction pa = planAttractionRepository.findById(planAttractionId)
                 .orElseThrow(() -> new RuntimeException("攻略景点节点不存在，ID: " + planAttractionId));
 
-        Path uploadPath = Paths.get(uploadDir);
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
@@ -110,16 +115,22 @@ public class TravelPlanService {
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
         }
 
-        String allowedExtensions = ".jpg.jpeg.png.gif.bmp.webp";
-        if (!extension.isEmpty() && !allowedExtensions.contains(extension.toLowerCase())) {
+        if (!extension.isEmpty() && !ALLOWED_EXTENSIONS.contains(extension)) {
             throw new IllegalArgumentException("不支持的图片格式: " + extension);
         }
 
+        // Generate a safe filename using UUID to prevent path traversal
         String filename = UUID.randomUUID() + extension;
-        Path filePath = uploadPath.resolve(filename);
+        Path filePath = uploadPath.resolve(filename).normalize();
+
+        // Validate the resolved path is still within the upload directory
+        if (!filePath.startsWith(uploadPath)) {
+            throw new IllegalArgumentException("Invalid file path");
+        }
+
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         pa.setPhotoPath(filename);

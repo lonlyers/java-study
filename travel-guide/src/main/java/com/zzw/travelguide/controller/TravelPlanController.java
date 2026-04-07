@@ -66,31 +66,39 @@ public class TravelPlanController {
     }
 
     @PostMapping("/attractions/{planAttractionId}/photo")
-    public ResponseEntity<PlanAttraction> uploadPhoto(
+    public ResponseEntity<?> uploadPhoto(
             @PathVariable Long planAttractionId,
             @RequestParam("file") MultipartFile file) {
         try {
             PlanAttraction pa = travelPlanService.uploadPhoto(planAttractionId, file);
             return ResponseEntity.ok(pa);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to upload photo"));
         }
     }
 
     @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> generatePdf(@PathVariable Long id) {
+    public ResponseEntity<?> generatePdf(@PathVariable Long id) {
         try {
             byte[] pdfBytes = pdfGenerationService.generatePdf(id);
             TravelPlan plan = travelPlanService.getPlanById(id);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            String filename = plan.getTitle().replaceAll("[^a-zA-Z0-9\\u4e00-\\u9fa5]", "_") + ".pdf";
-            headers.setContentDispositionFormData("attachment", filename);
+            String sanitized = plan.getTitle().replaceAll("[^a-zA-Z0-9\\u4e00-\\u9fa5]", "_");
+            if (sanitized.isEmpty()) {
+                sanitized = "travel_guide";
+            }
+            if (sanitized.length() > 100) {
+                sanitized = sanitized.substring(0, 100);
+            }
+            headers.setContentDispositionFormData("attachment", sanitized + ".pdf");
 
             return ResponseEntity.ok().headers(headers).body(pdfBytes);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to generate PDF"));
         }
     }
 

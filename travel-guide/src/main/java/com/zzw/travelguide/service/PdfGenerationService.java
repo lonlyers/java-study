@@ -9,6 +9,8 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.zzw.travelguide.model.PlanAttraction;
 import com.zzw.travelguide.model.TravelPlan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class PdfGenerationService {
+
+    private static final Logger log = LoggerFactory.getLogger(PdfGenerationService.class);
 
     @Value("${travel-guide.upload-dir:./uploads/photos}")
     private String uploadDir;
@@ -188,7 +192,8 @@ public class PdfGenerationService {
                 if (new File(filePath).exists()) {
                     return BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.debug("Failed to load font from path: {}", fontPath, e);
                 // Continue to next font
             }
         }
