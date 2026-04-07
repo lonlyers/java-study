@@ -78,6 +78,7 @@ public class TravelPlanService {
 
     public TravelPlan updatePlanAttractions(Long planId, List<Long> attractionIds) {
         TravelPlan plan = getPlanById(planId);
+        // Flush pending changes first so orphanRemoval properly deletes old attractions
         travelPlanRepository.flush();
         plan.getPlanAttractions().clear();
 
@@ -104,6 +105,10 @@ public class TravelPlanService {
     );
 
     public PlanAttraction uploadPhoto(Long planAttractionId, MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Please select a file to upload");
+        }
+
         PlanAttraction pa = planAttractionRepository.findById(planAttractionId)
                 .orElseThrow(() -> new RuntimeException("攻略景点节点不存在，ID: " + planAttractionId));
 
@@ -120,6 +125,9 @@ public class TravelPlanService {
 
         if (!extension.isEmpty() && !ALLOWED_EXTENSIONS.contains(extension)) {
             throw new IllegalArgumentException("不支持的图片格式: " + extension);
+        }
+        if (extension.isEmpty() && originalFilename != null && originalFilename.endsWith(".")) {
+            throw new IllegalArgumentException("Invalid filename");
         }
 
         // Generate a safe filename using UUID to prevent path traversal
