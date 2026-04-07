@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Guide - 旅游打卡攻略系统</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>🌍 Travel Guide</h1>
+            <p>旅游打卡攻略系统</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="create">📝 Create Plan</button>
+            <button class="tab-btn" data-tab="plans">📋 My Plans</button>
+        </nav>
+
+        <!-- Create Plan Tab -->
+        <div id="create-tab" class="tab-content active">
+            <div class="card">
+                <h2>Create New Travel Plan</h2>
+
+                <!-- Step 1: Select City -->
+                <div class="form-section">
+                    <h3>Step 1: Select a City</h3>
+                    <div id="city-list" class="city-grid">
+                        <!-- Cities loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Step 2: Select Attractions -->
+                <div class="form-section" id="attractions-section" style="display: none;">
+                    <h3>Step 2: Select & Order Attractions</h3>
+                    <p class="hint">Click attractions to select them. Drag selected items to reorder.</p>
+                    <div class="attractions-layout">
+                        <div class="attractions-available">
+                            <h4>Available Attractions</h4>
+                            <div id="available-attractions" class="attraction-list">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+                        <div class="attractions-selected">
+                            <h4>Selected Attractions (in order)</h4>
+                            <div id="selected-attractions" class="attraction-list sortable">
+                                <!-- Selected attractions -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Plan Title & Create -->
+                <div class="form-section" id="create-section" style="display: none;">
+                    <h3>Step 3: Name Your Plan</h3>
+                    <input type="text" id="plan-title" placeholder="Enter plan title..."
+                           class="text-input" maxlength="100">
+                    <button id="create-plan-btn" class="btn btn-primary">Create Plan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Plans Tab -->
+        <div id="plans-tab" class="tab-content">
+            <div class="card">
+                <h2>My Travel Plans</h2>
+                <div id="plans-list">
+                    <!-- Plans loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Detail Modal -->
+        <div id="plan-detail-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="detail-plan-title"></h2>
+                    <button class="close-btn" id="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="detail-plan-city" class="plan-city-info"></p>
+                    <div id="detail-attractions" class="detail-attractions">
+                        <!-- Attraction details -->
+                    </div>
+                    <div class="modal-actions">
+                        <button id="generate-pdf-btn" class="btn btn-success">📄 Generate PDF</button>
+                        <button id="delete-plan-btn" class="btn btn-danger">🗑️ Delete Plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast" style="display: none;"></div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
